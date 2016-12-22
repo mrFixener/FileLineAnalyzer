@@ -20,6 +20,7 @@ public class Configuration {
     private  String usernsme;   
     private  String pasword;
     private Integer numFlush;
+    public Configuration(){}
     public Configuration(String fileMask, String numPoolThread) {
         this.fileMask = fileMask;
         this.numPoolThread = numPoolThread;

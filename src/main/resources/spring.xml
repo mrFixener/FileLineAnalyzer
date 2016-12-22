@@ -17,12 +17,12 @@
     <context:component-scan base-package="com.fileanalyzer.dao.impl"/>
     <bean id="configProperties"
           class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="location" value="classpath:configuration.properties" />
+        <property name="location" value="classpath:config.properties" />
     </bean>
     
     <bean id="configuration" class="com.fileanalyzer.config.Configuration">
-        <constructor-arg value="${conf.regExMask}"/>
-        <constructor-arg value="${conf.numPoolThread}"/>
+        <property name="fileMask" value="${conf.regExMask}"/>
+        <property name="numPoolThread" value="${conf.numPoolThread}"/>
         <property name="wrongParams" value="${conf.errMess.wrongParams}"/>
         <property name="url" value="${conf.jdbc}"/>   
         <property name="driverName" value="${conf.driverClassName}"/>   

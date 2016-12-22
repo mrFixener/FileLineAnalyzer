@@ -5,6 +5,7 @@
  */
 package com.fileanalyzer.dao.impl;
 
+import com.fileanalyzer.dao.DAOMinimizer;
 import com.fileanalyzer.dao.FilesDAO;
 import com.fileanalyzer.dbconnector.DBConnector;
 import com.fileanalyzer.domain.FileStatistic;
@@ -28,7 +29,7 @@ import org.springframework.stereotype.Component;
  * @author Dimon
  */
 @Component
-public class FilesDAOImpl implements FilesDAO{
+public class FilesDAOImpl implements FilesDAO, DAOMinimizer {
     private static final Logger log = Logger.getLogger(FilesDAOImpl.class);
     @Override
     public void add(Files fileInDb) {
@@ -41,34 +42,9 @@ public class FilesDAOImpl implements FilesDAO{
             preparedStatement.executeUpdate();
             con.commit();
         } catch (SQLException e) {
-            if (con != null) {
-                try {
-                    log.error("Transaction is being rolled back", e);
-                    con.rollback();
-                } catch (SQLException excep) {
-                    log.error(excep);
-                }
-            }
+            handleException(e, con);
         } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
-            try {
-                con.setAutoCommit(true);
-            } catch (SQLException ex) {
-                log.error("setAutoCommit(true)",ex);
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            } 
+            doFinal(con, preparedStatement);
         }
     }
 
@@ -83,34 +59,9 @@ public class FilesDAOImpl implements FilesDAO{
             preparedStatement.executeUpdate();
             con.commit();
         } catch (SQLException e) {
-            if (con != null) {
-                try {
-                    log.error("Transaction is being rolled back", e);
-                    con.rollback();
-                } catch (SQLException excep) {
-                    log.error(excep);
-                }
-            }
+            handleException(e, con);
         } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
-            try {
-                con.setAutoCommit(true);
-            } catch (SQLException ex) {
-                log.error("setAutoCommit(true)",ex);
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            } 
+            doFinal(con, preparedStatement);
         }
     }
 
@@ -130,34 +81,9 @@ public class FilesDAOImpl implements FilesDAO{
             preparedStatement.executeUpdate();
             con.commit();
         } catch (SQLException e) {
-            if (con != null) {
-                try {
-                    log.error("Transaction is being rolled back", e);
-                    con.rollback();
-                } catch (SQLException excep) {
-                    log.error(excep);
-                }
-            }
+            handleException(e, con);
         } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
-            try {
-                con.setAutoCommit(true);
-            } catch (SQLException ex) {
-                log.error("setAutoCommit(true)",ex);
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            } 
+            doFinal(con, preparedStatement);
         }
     }
 
@@ -172,14 +98,7 @@ public class FilesDAOImpl implements FilesDAO{
             statement.execute("delete from "+Files.FilesFieldsKey.TABLE+" where id="+fileInDb.getId());
             con.commit();
         } catch (SQLException e) {
-            if (con != null) {
-                try {
-                    log.error("Transaction is being rolled back", e);
-                    con.rollback();
-                } catch (SQLException excep) {
-                    log.error(excep);
-                }
-            }
+            handleException(e, con);
         } finally {
             if (statement != null) {
                 try {
@@ -218,34 +137,9 @@ public class FilesDAOImpl implements FilesDAO{
             ResultSetToFiles(rs, fStat);
             con.commit();
         } catch (SQLException e) {
-            if (con != null) {
-                try {
-                    log.error("Transaction is being rolled back", e);
-                    con.rollback();
-                } catch (SQLException excep) {
-                    log.error(excep);
-                }
-            }
+            handleException(e, con);
         } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
-            try {
-                con.setAutoCommit(true);
-            } catch (SQLException ex) {
-                log.error("setAutoCommit(true)",ex);
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }  
+            doFinal(con, statement);
         }
         return fStat;
     }
@@ -264,34 +158,9 @@ public class FilesDAOImpl implements FilesDAO{
             ResultSetToListFiles(rs, listFStat);
             con.commit();
         } catch (SQLException e) {
-            if (con != null) {
-                try {
-                    log.error("Transaction is being rolled back", e);
-                    con.rollback();
-                } catch (SQLException excep) {
-                    log.error(excep);
-                }
-            }
+            handleException(e, con);
         } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
-            try {
-                con.setAutoCommit(true);
-            } catch (SQLException ex) {
-                log.error("setAutoCommit(true)", ex);
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
+            doFinal(con ,statement);
         }
         return listFStat;
     }
@@ -311,35 +180,45 @@ public class FilesDAOImpl implements FilesDAO{
                 maxId = rs.getLong(1);
             con.commit();
         } catch (SQLException e) {
-            if (con != null) {
-                try {
-                    log.error("Transaction is being rolled back", e);
-                    con.rollback();
-                } catch (SQLException excep) {
-                    log.error(excep);
-                }
-            }
+            handleException(e, con);
         } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
-            try {
-                con.setAutoCommit(true);
-            } catch (SQLException ex) {
-                log.error("setAutoCommit(true)",ex);
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
+            doFinal(con ,statement);
         }
         return maxId;
+    }
+
+    @Override
+    public void handleException(final Exception e, final Connection con) {
+        if (con != null) {
+            try {
+                log.error("Transaction is being rolled back", e);
+                con.rollback();
+            } catch (SQLException excep) {
+                log.error(excep);
+            }
+        }
+    }
+
+    @Override
+    public void doFinal(final Connection con, final PreparedStatement preparedStatement) {
+        if (preparedStatement != null) {
+            try {
+                preparedStatement.close();
+            } catch (SQLException ex) {
+                log.error(ex);
+            }
+        }
+        try {
+            con.setAutoCommit(true);
+        } catch (SQLException ex) {
+            log.error("setAutoCommit(true)",ex);
+        }
+        if (con != null) {
+            try {
+                con.close();
+            } catch (SQLException ex) {
+                log.error(ex);
+            }
+        }
     }
 }

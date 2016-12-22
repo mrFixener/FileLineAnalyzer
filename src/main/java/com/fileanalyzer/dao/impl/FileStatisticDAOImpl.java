@@ -5,6 +5,7 @@
  */
 package com.fileanalyzer.dao.impl;
 
+import com.fileanalyzer.dao.DAOMinimizer;
 import com.fileanalyzer.dao.FileStatisticDAO;
 import com.fileanalyzer.dbconnector.DBConnector;
 import com.fileanalyzer.domain.FileStatistic;
@@ -25,7 +26,7 @@ import org.springframework.stereotype.Component;
  * @author Dimon
  */
 @Component
-public class FileStatisticDAOImpl implements FileStatisticDAO{
+public class FileStatisticDAOImpl implements FileStatisticDAO, DAOMinimizer{
     private static final Logger log = Logger.getLogger(FileStatisticDAOImpl.class);
     @Override
     public void add(FileStatistic fStat) {
@@ -38,34 +39,9 @@ public class FileStatisticDAOImpl implements FileStatisticDAO{
             preparedStatement.executeUpdate();
             con.commit();
         } catch (SQLException e) {
-            if (con != null) {
-                try {
-                    log.error("Transaction is being rolled back", e);
-                    con.rollback();
-                } catch (SQLException excep) {
-                    log.error(excep);
-                }
-            }
+            handleException(e, con);
         } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
-            try {
-                con.setAutoCommit(true);
-            } catch (SQLException ex) {
-                log.error("setAutoCommit(true)",ex);
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            } 
+            doFinal(con, preparedStatement);
         }
     }
 
@@ -80,34 +56,9 @@ public class FileStatisticDAOImpl implements FileStatisticDAO{
             preparedStatement.executeUpdate();
             con.commit();
         } catch (SQLException e) {
-            if (con != null) {
-                try {
-                    log.error("Transaction is being rolled back", e);
-                    con.rollback();
-                } catch (SQLException excep) {
-                    log.error(excep);
-                }
-            }
+            handleException(e, con);
         } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
-            try {
-                con.setAutoCommit(true);
-            } catch (SQLException ex) {
-                log.error("setAutoCommit(true)",ex);
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }  
+            doFinal(con, preparedStatement);
         }
     }
 
@@ -128,34 +79,9 @@ public class FileStatisticDAOImpl implements FileStatisticDAO{
             preparedStatement.executeUpdate();
             con.commit();
         } catch (SQLException e) {
-            if (con != null) {
-                try {
-                    log.error("Transaction is being rolled back", e);
-                    con.rollback();
-                } catch (SQLException excep) {
-                    log.error(excep);
-                }
-            }
+            handleException(e, con);
         } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
-            try {
-                con.setAutoCommit(true);
-            } catch (SQLException ex) {
-                log.error("setAutoCommit(true)",ex);
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            } 
+            doFinal(con, preparedStatement);
         }
     }
 
@@ -216,34 +142,9 @@ public class FileStatisticDAOImpl implements FileStatisticDAO{
             ResultSetToFileStatistic(rs, fStat);
             con.commit();
         } catch (SQLException e) {
-            if (con != null) {
-                try {
-                    log.error("Transaction is being rolled back", e);
-                    con.rollback();
-                } catch (SQLException excep) {
-                    log.error(excep);
-                }
-            }
+            handleException(e, con);
         } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
-            try {
-                con.setAutoCommit(true);
-            } catch (SQLException ex) {
-                log.error("setAutoCommit(true)",ex);
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }    
+            doFinal(con, statement);
         }
         return fStat;
     }
@@ -263,7 +164,16 @@ public class FileStatisticDAOImpl implements FileStatisticDAO{
                 maxId = rs.getLong(1);
             con.commit();
         } catch (SQLException e) {
-            if (con != null) {
+            handleException(e, con);
+        } finally {
+            doFinal(con, statement);
+        }
+        return maxId;
+    }
+
+    @Override
+    public void handleException(final Exception e, final Connection con) {
+        if (con != null) {
                 try {
                     log.error("Transaction is being rolled back", e);
                     con.rollback();
@@ -271,28 +181,29 @@ public class FileStatisticDAOImpl implements FileStatisticDAO{
                     log.error(excep);
                 }
             }
-        } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
-            }
+    }
+
+    @Override
+    public void doFinal(final Connection con, final PreparedStatement preparedStatement) {
+        if (preparedStatement != null) {
             try {
-                con.setAutoCommit(true);
+                preparedStatement.close();
             } catch (SQLException ex) {
-                log.error("setAutoCommit(true)",ex);
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex) {
-                    log.error(ex);
-                }
+                log.error(ex);
             }
         }
-        return maxId;
+        try {
+            con.setAutoCommit(true);
+        } catch (SQLException ex) {
+            log.error("setAutoCommit(true)", ex);
+        }
+        if (con != null) {
+            try {
+                con.close();
+            } catch (SQLException ex) {
+                log.error(ex);
+            }
+        }
     }
   
 }
